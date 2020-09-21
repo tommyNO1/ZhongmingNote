@@ -23,7 +23,7 @@ HashMap的底层：数组加链表（JDK7及之前）数组加链表加红黑树
 ```
 HashMap map = new HashMap();
 ```
-在实例化之后，底层创建了一个长度为15的一维数组Entry[] table
+在实例化之后，底层创建了一个长度为16的一维数组Entry[] table
 ```
 map.put(key1,value1);
 ```
