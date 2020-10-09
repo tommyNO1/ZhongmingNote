@@ -641,7 +641,7 @@ public class AnnotationPointCut {
            <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
            <property name="url" value="jdbc:mysql://localhost:3306/o2o?useUnicode=true&amp;characterEncoding=utf8&amp;serverTimezone=GMT%2B8"/>
            <property name="username" value="root"/>
-           <property name="password" value="yuanzm12"/>
+           <property name="password" value="****"/>
        </bean>
    ```
 
