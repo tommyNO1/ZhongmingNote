@@ -1,6 +1,6 @@
-# SpringMVC
 
-## 1、什么是MVC：
+
+# 什么是MVC：
 
 模型（dao、service）、视图（jsp）、控制器（Servlet），是一种软件设计规范
 
@@ -23,15 +23,15 @@ MVC框架要做的事情
 3. 处理请求--调用相关的业务处理--封装响应数据
 4. 将响应的数据进行渲染 ，jsp/html等表示层数据
 
-## 2、什么是SpringMVC
+# 什么是SpringMVC
 
-### 2.1 中心控制器
+##  中心控制器
 
 Spring的web框架围绕DispatcherServlet设计。DispatcherServlet的作用是将请求分发到不同的处理器。从Spring 2.5开始，使用Java 5或者以上版本的用户可以采用基于注解的controller声明方式。
 
 Spring MVC框架像许多其他MVC框架一样, **以请求为驱动** , **围绕一个中心Servlet分派请求及提供其他功能**，**DispatcherServlet是一个实际的Servlet (它继承自HttpServlet 基类)**。
 
-### 2.2 SpringMVC执行原理![img](https://mmbiz.qpic.cn/mmbiz_png/uJDAUKrGC7KwPOPWq00pMJiaK86lF6BjIbmPOkY8TxF6qvGAGXxC7dArYcr8uJlWoVC4aF4bfxgCGCD8sHg8mgw/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
+![image-20201026110629249](../Fig/image-20201026110629249.png)
 
 简要分析执行流程
 
@@ -69,7 +69,7 @@ Spring MVC框架像许多其他MVC框架一样, **以请求为驱动** , **围�
 
 12. 最终视图呈现给用户。
 
-## 3、使用注解开发SpringMVC
+# 使用注解开发SpringMVC
 
 1. 新建一个web项目
 
@@ -169,9 +169,9 @@ Spring MVC框架像许多其他MVC框架一样, **以请求为驱动** , **围�
 
 7. 测试运行调试.
 
-## 4、RestFul和控制器
+# RestFul和控制器
 
-### 4.1 控制器Controller
+## 控制器Controller
 
 - 控制器复杂提供访问应用程序的行为，通常通过接口定义或注解定义两种方法实现。
 - 控制器负责解析用户的请求并将其转换为一个模型。
@@ -185,7 +185,7 @@ Spring MVC框架像许多其他MVC框架一样, **以请求为驱动** , **围�
 - 实现接口Controller定义控制器是较老的办法
 - 缺点是：一个控制器中只有一个方法，如果要多个方法则需要定义多个Controller；定义的方式比较麻烦；
 
-## 5、RestFul风格
+## RestFul风格
 
 **概念**
 
@@ -231,7 +231,7 @@ Restful就是一个资源定位及资源操作的风格。不是标准也不是�
   }
   ```
 
-## 6、SpringMVC结果跳转方式
+# SpringMVC结果跳转方式
 
 **通过SpringMVC来实现转发和重定向 - 无需视图解析器；**
 
@@ -278,9 +278,9 @@ public class ResultSpringMVC2 {
 }
 ```
 
-## 7、SpringMVC数据处理
+# SpringMVC数据处理
 
-### 7.1 处理提交数据
+## 处理提交数据
 
 **1、提交的域名称和处理方法的参数名一致**
 
@@ -348,7 +348,7 @@ public String user(User user){
 
 说明：如果使用对象的话，前端传递的参数名和对象名必须一致，否则就是null。
 
-### 7.2数据显示到前端
+## 数据显示到前端
 
 **第一种 : 通过ModelAndView**
 
@@ -401,7 +401,7 @@ ModelMap 继承了 LinkedMap ，除了实现了自身的一些方法，同样的
 ModelAndView 可以在储存数据的同时，可以进行设置返回的逻辑视图，进行控制展示层的跳转。
 ```
 
-## 8、乱码问题
+# 乱码问题
 
 使用SpringMVC的编码过滤器解决
 
@@ -422,14 +422,14 @@ ModelAndView 可以在储存数据的同时，可以进行设置返回的逻辑�
     </filter-mapping>
 ```
 
-## 9、JASON
+# JASON
 
 前后分离时代：
 
 - 后端部署后端，提供接口
 - 前端独立部署，负责渲染后端的数据
 
-### 9.1 Controller返回JSON数据
+## Controller返回JSON数据
 
 Jackson应该是目前比较好的json解析工具了
 
@@ -446,9 +446,9 @@ Jackson应该是目前比较好的json解析工具了
 </dependency>
 ```
 
-## 10、SpringMVC拦截器
+# SpringMVC拦截器
 
-pringMVC的处理器拦截器类似于Servlet开发中的过滤器Filter,用于对处理器进行预处理和后处理。开发者可以自己定义一些拦截器来实现特定的功能。
+SpringMVC的处理器拦截器类似于Servlet开发中的过滤器Filter,用于对处理器进行预处理和后处理。开发者可以自己定义一些拦截器来实现特定的功能。
 
 **过滤器与拦截器的区别：**拦截器是AOP思想的具体应用。
 
@@ -462,7 +462,7 @@ pringMVC的处理器拦截器类似于Servlet开发中的过滤器Filter,用于�
 - 拦截器是SpringMVC框架自己的，只有使用了SpringMVC框架的工程才能使用
 - 拦截器只会拦截访问的控制器方法， 如果访问的是jsp/html/css/image/js是不会进行拦截的
 
-### 10.1 自定义拦截器
+##  自定义拦截器
 
 那如何实现拦截器呢？
 
@@ -543,4 +543,4 @@ public class InterceptorController {
 }
 ```
 
-## 11、文件上传和下载
+# 文件上传和下载

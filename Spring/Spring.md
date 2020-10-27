@@ -349,6 +349,56 @@ jdk1.5支持的注解，spring2.5支持注解
 
 ## 9.使用JAVA方式配置spring
 
+```java
+package com.zhongming.pojo;
+
+import org.springframework.beans.factory.annotation.Value;
+
+public class Person {
+
+    @Value("Tommy")
+    private String name;
+
+    public Person() {
+    }
+
+    public Person(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+
+```
+
+```java
+@Configuration
+public class MyConfig {
+
+    @Bean
+    public Person getPerson(){
+        return new Person();
+    }
+}
+```
+
+```java
+public class MyTest {
+    public static void main(String[] args) {
+        ApplicationContext context = new AnnotationConfigApplicationContext(MyConfig.class);
+        Person person = (Person) context.getBean("getPerson");
+        System.out.println(person.getName());
+    }
+```
+
+
+
 ## 10.代理模式
 
 代理模式的分类：
@@ -358,7 +408,7 @@ jdk1.5支持的注解，spring2.5支持注解
 
 ### 10.1 代理模式
 
-![image-20201004161429484](C:\Users\86137\AppData\Roaming\Typora\typora-user-images\image-20201004161429484.png)
+![image-20201004161429484](../Fig/image-20201004161429484.png)
 
 角色分析：
 
@@ -504,7 +554,7 @@ public class Client {
 
 AOP（Aspect Oriented Programming）意为：面向切面编程，通过预编译方式和运行期动态代理实现程序功能的统一维护的一种技术。AOP是OOP的延续，是软件开发中的一个热点，也是Spring框架中的一个重要的内容，是函数式编程的一种衍生范型。利用AOP可以对业务逻辑的各个部分进行隔离，从而使得业务逻辑各部分之间的耦合度降低，提高程序的可重用行，同时提高了开发的效率。
 
-![image-20201004171022678](C:\Users\86137\AppData\Roaming\Typora\typora-user-images\image-20201004171022678.png)
+![image-20201004171022678](../Fig/image-20201004171022678.png)
 
 ### 11.2 AOP在Spring中的作用
 
