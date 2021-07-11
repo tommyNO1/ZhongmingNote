@@ -603,6 +603,19 @@ debug: true
 
 # SpringBoot Web开发
 
+使用SpringBoot；
+
+**1）、创建SpringBoot应用，选中我们需要的模块；**
+
+**2）、SpringBoot已经默认将这些场景配置好了，只需要在配置文件中指定少量配置就可以运行起来**
+
+**3）、自己编写业务代码**；
+
+```
+xxxxAutoConfiguration：帮我们给容器中自动配置组件；
+xxxxProperties:配置类来封装配置文件的内容；
+```
+
 要解决的问题：
 
 - 导入静态资源
@@ -611,6 +624,173 @@ debug: true
 - 装配扩展SpringVC
 - 增删改查
 - 拦截器
+
+## 日志
+
+### 日志框架
+
+常见的日志框架：JUL、JCL、Jboss-logging、logback、log4j、log4j2、slf4j....
+
+| 日志门面  （日志的抽象层）                                   | 日志实现                                             |
+| ------------------------------------------------------------ | ---------------------------------------------------- |
+| ~~JCL（Jakarta  Commons Logging）~~    SLF4j（Simple  Logging Facade for Java）    **~~jboss-logging~~** | Log4j  JUL（java.util.logging）  Log4j2  **Logback** |
+
+左边选一个门面（抽象层）、右边来选一个实现；
+
+日志门面：  SLF4J；
+
+日志实现：Logback；
+
+- Spring日志框架默认是用JCL
+- ==SpringBoot选用SLF4j和logback==
+
+### SLF4j
+
+在开发过程中，日志记录方法的调用，不应该来直接调用日志的实现类，而是调用日志抽象层里面的方法；
+
+==给系统里面导入slf4j的jar和logback的实现jar==
+
+![](../Fig/concrete-bindings.png)
+
+每一个日志的实现框架都有自己的配置文件。使用slf4j以后，**配置文件还是做成日志实现框架自己本身的配置文件；**
+
+### 统一日志记录问题
+
+如果要建立一个A系统，使用slf4j+logback作为日志框架，但是其中所使用的框架中的日志类别各不相同，如 Spring（commons-logging）、Hibernate（jboss-logging）等等:
+
+如何统一日志记录，即使是别的框架和我一起统一使用slf4j进行输出？
+
+![](../Fig/legacy.png)
+
+**如何让系统中所有的日志都统一到slf4j；**
+
+==1、将系统中其他日志框架先排除出去；==
+
+==2、用中间包来替换原有的日志框架；==
+
+==3、我们导入slf4j其他的实现==
+
+### SpringBoot日志关系
+
+![](../Fig/搜狗截图20180131220946.png)
+
+总结：
+
+1. SpringBoot底层也是使用slf4j+logback的方式进行日志记录
+
+2. SpringBoot也把其他的日志都替换成了slf4j；
+
+3. 如果我们要引入其他框架，一定要把这个框架的默认日志依赖移除掉。
+
+   ```xml
+   	<dependency>
+   		<groupId>org.springframework</groupId>
+   		<artifactId>spring-core</artifactId>
+   		<exclusions>
+   			<exclusion>
+   				<groupId>commons-logging</groupId>
+   				<artifactId>commons-logging</artifactId>
+   			</exclusion>
+   		</exclusions>
+   	</dependency>
+   ```
+
+**==SpringBoot能自动适配所有的日志，而且底层使用slf4j+logback的方式记录日志，引入其他框架的时候，只需要把这个框架依赖的日志框架排除掉即可；==**
+
+### 日志的使用
+
+#### 默认配置
+
+```java
+//记录器
+Logger logger = LoggerFactory.getLogger(getClass());
+@Test
+public void contextLoads() {
+	//System.out.println();
+
+	//日志的级别；
+	//由低到高   trace<debug<info<warn<error
+	//可以调整输出的日志级别；日志就只会在这个级别以以后的高级别生效
+	logger.trace("这是trace日志...");
+	logger.debug("这是debug日志...");
+	//SpringBoot默认给我们使用的是info级别的，没有指定级别的就用SpringBoot默认规定的级别；root级别
+	logger.info("这是info日志...");
+	logger.warn("这是warn日志...");
+	logger.error("这是error日志...");
+}
+```
+
+SpringBoot修改日志的默认配置
+
+```properties
+logging.level.com.atguigu=trace
+
+
+#logging.path=
+# 不指定路径在当前项目下生成springboot.log日志
+# 可以指定完整的路径；
+#logging.file=G:/springboot.log
+
+# 在当前磁盘的根路径下创建spring文件夹和里面的log文件夹；使用 spring.log 作为默认文件
+logging.path=/spring/log
+
+#  在控制台输出的日志的格式
+logging.pattern.console=%d{yyyy-MM-dd} [%thread] %-5level %logger{50} - %msg%n
+# 指定文件中日志输出的格式
+logging.pattern.file=%d{yyyy-MM-dd} === [%thread] === %-5level === %logger{50} ==== %msg%n
+```
+
+| logging.file | logging.path | Example  | Description                        |
+| ------------ | ------------ | -------- | ---------------------------------- |
+| (none)       | (none)       |          | 只在控制台输出                     |
+| 指定文件名   | (none)       | my.log   | 输出日志到my.log文件               |
+| (none)       | 指定目录     | /var/log | 输出到指定目录的 spring.log 文件中 |
+
+    日志输出格式：
+    	%d表示日期时间，
+    	%thread表示线程名，
+    	%-5level：级别从左显示5个字符宽度
+    	%logger{50} 表示logger名字最长50个字符，否则按照句点分割。 
+    	%msg：日志消息，
+    	%n是换行符
+    -->
+    %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n
+#### 指定配置
+
+给类路径下放上每个日志框架自己的配置文件即可；SpringBoot就不使用他默认配置的了
+
+| Logging System          | Customization                                                |
+| ----------------------- | ------------------------------------------------------------ |
+| Logback                 | `logback-spring.xml`, `logback-spring.groovy`, `logback.xml` or `logback.groovy` |
+| Log4j2                  | `log4j2-spring.xml` or `log4j2.xml`                          |
+| JDK (Java Util Logging) | `logging.properties`                                         |
+
+logback.xml：直接就被日志框架识别了；
+
+**logback-spring.xml**：日志框架就不直接加载日志的配置项，由SpringBoot解析日志配置，可以使用SpringBoot的高级Profile功能
+
+```xml
+<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <!--
+        日志输出格式：
+			%d表示日期时间，
+			%thread表示线程名，
+			%-5level：级别从左显示5个字符宽度
+			%logger{50} 表示logger名字最长50个字符，否则按照句点分割。 
+			%msg：日志消息，
+			%n是换行符
+        -->
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <springProfile name="dev">
+            <!--可以指定某段配置只在某个环境下生效-->
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} ----> [%thread] ---> %-5level %logger{50} - %msg%n</pattern>
+            </springProfile>
+            <springProfile name="!dev">
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} ==== [%thread] ==== %-5level %logger{50} - %msg%n</pattern>
+            </springProfile>
+        </layout>
+    </appender>
+```
 
 ## 静态资源导入
 
@@ -630,9 +810,11 @@ Webjars本质就是以jar包的方式引入我们的静态资源 ， 我们以�
 </dependency>
 ```
 
+==1）、所有 /webjars/** ，都去 classpath:/META-INF/resources/webjars/ 找资源；==
+
 ### 项目静态资源
 
-我们去找staticPathPattern发现第二种映射规则 ：/** , 访问当前的项目任意资源，它会去找 resourceProperties 这个类，我们可以点进去看一下分析：
+我们去找staticPathPattern发现第二种映射规则 ：==/** , 访问当前的项目任意资源==，它会去找 resourceProperties 这个类，我们可以点进去看一下分析：
 
 ```java
 // 进入方法
@@ -688,6 +870,8 @@ spring.resources.static-locations=classpath:/coding/,classpath:/kuang/
 
 ## 模板引擎
 
+![](../Fig/template-engine.png)
+
 ### 引入Thymeleaf
 
 Thymeleaf 官网：https://www.thymeleaf.org/
@@ -708,5 +892,523 @@ https://docs.spring.io/spring-boot/docs/2.2.5.RELEASE/reference/htmlsingle/#usin
 </dependency>
 ```
 
+### Thymeleaf的使用
 
+```java
+@ConfigurationProperties(prefix = "spring.thymeleaf")
+public class ThymeleafProperties {
+
+	private static final Charset DEFAULT_ENCODING = Charset.forName("UTF-8");
+
+	private static final MimeType DEFAULT_CONTENT_TYPE = MimeType.valueOf("text/html");
+
+	public static final String DEFAULT_PREFIX = "classpath:/templates/";
+
+	public static final String DEFAULT_SUFFIX = ".html";
+  	//
+```
+
+只要我们把HTML页面放在classpath:/templates/，thymeleaf就能自动渲染；
+
+1. 导入Thymeleaf的名称空间
+
+   ```xml
+   <html lang="en" xmlns:th="http://www.thymeleaf.org">
+   ```
+
+2. 使用Thymeleaf的语法
+
+   ```xml
+   <!DOCTYPE html>
+   <html lang="en" xmlns:th="http://www.thymeleaf.org">
+   <head>
+       <meta charset="UTF-8">
+       <title>Title</title>
+   </head>
+   <body>
+       <h1>成功！</h1>
+       <!--th:text 将div里面的文本内容设置为 -->
+       <div th:text="${hello}">这是显示欢迎信息</div>
+   </body>
+   </html>
+   ```
+
+   ### 语法规则
+
+   ==th：任意html属性；来替换原生属性的值==
+
+   ![](../Fig/2018-02-04_123955.png)
+
+表达式
+
+```properties
+Simple expressions:（表达式语法）
+    Variable Expressions: ${...}：获取变量值；OGNL；
+    		1）、获取对象的属性、调用方法
+    		2）、使用内置的基本对象：
+    			#ctx : the context object.
+    			#vars: the context variables.
+                #locale : the context locale.
+                #request : (only in Web Contexts) the HttpServletRequest object.
+                #response : (only in Web Contexts) the HttpServletResponse object.
+                #session : (only in Web Contexts) the HttpSession object.
+                #servletContext : (only in Web Contexts) the ServletContext object.
+                
+                ${session.foo}
+            3）、内置的一些工具对象：
+#execInfo : information about the template being processed.
+#messages : methods for obtaining externalized messages inside variables expressions, in the same way as they would be obtained using #{…} syntax.
+#uris : methods for escaping parts of URLs/URIs
+#conversions : methods for executing the configured conversion service (if any).
+#dates : methods for java.util.Date objects: formatting, component extraction, etc.
+#calendars : analogous to #dates , but for java.util.Calendar objects.
+#numbers : methods for formatting numeric objects.
+#strings : methods for String objects: contains, startsWith, prepending/appending, etc.
+#objects : methods for objects in general.
+#bools : methods for boolean evaluation.
+#arrays : methods for arrays.
+#lists : methods for lists.
+#sets : methods for sets.
+#maps : methods for maps.
+#aggregates : methods for creating aggregates on arrays or collections.
+#ids : methods for dealing with id attributes that might be repeated (for example, as a result of an iteration).
+
+    Selection Variable Expressions: *{...}：选择表达式：和${}在功能上是一样；
+    	补充：配合 th:object="${session.user}：
+   <div th:object="${session.user}">
+    <p>Name: <span th:text="*{firstName}">Sebastian</span>.</p>
+    <p>Surname: <span th:text="*{lastName}">Pepper</span>.</p>
+    <p>Nationality: <span th:text="*{nationality}">Saturn</span>.</p>
+    </div>
+    
+    Message Expressions: #{...}：获取国际化内容
+    Link URL Expressions: @{...}：定义URL；
+    		@{/order/process(execId=${execId},execType='FAST')}
+    Fragment Expressions: ~{...}：片段引用表达式
+    		<div th:insert="~{commons :: main}">...</div>
+    		
+Literals（字面量）
+      Text literals: 'one text' , 'Another one!' ,…
+      Number literals: 0 , 34 , 3.0 , 12.3 ,…
+      Boolean literals: true , false
+      Null literal: null
+      Literal tokens: one , sometext , main ,…
+Text operations:（文本操作）
+    String concatenation: +
+    Literal substitutions: |The name is ${name}|
+Arithmetic operations:（数学运算）
+    Binary operators: + , - , * , / , %
+    Minus sign (unary operator): -
+Boolean operations:（布尔运算）
+    Binary operators: and , or
+    Boolean negation (unary operator): ! , not
+Comparisons and equality:（比较运算）
+    Comparators: > , < , >= , <= ( gt , lt , ge , le )
+    Equality operators: == , != ( eq , ne )
+Conditional operators:条件运算（三元运算符）
+    If-then: (if) ? (then)
+    If-then-else: (if) ? (then) : (else)
+    Default: (value) ?: (defaultvalue)
+Special tokens:
+    No-Operation: _ 
+```
+
+## SpringMVC自动配置
+
+### Spring MVC auto-configuration
+
+Spring Boot 自动配置好了SpringMVC
+
+以下是SpringBoot对SpringMVC的默认配置:**==（WebMvcAutoConfiguration）==**
+
+- Inclusion of `ContentNegotiatingViewResolver` and `BeanNameViewResolver` beans.
+  - 自动配置了ViewResolver（视图解析器：根据方法的返回值得到视图对象（View），视图对象决定如何渲染（转发？重定向？））
+  - ContentNegotiatingViewResolver：组合所有的视图解析器的；
+  - ==如何定制：我们可以自己给容器中添加一个视图解析器；自动的将其组合进来；==
+
+- Support for serving static resources, including support for WebJars (see below).静态资源文件夹路径,webjars
+
+- Static `index.html` support. 静态首页访问
+
+- Custom `Favicon` support (see below).  favicon.ico
+
+- 自动注册了 of `Converter`, `GenericConverter`, `Formatter` beans.
+
+  - Converter：转换器；  public String hello(User user)：类型转换使用Converter
+  - `Formatter`  格式化器；  2017.12.17===Date；
+
+==自己添加的格式化器转换器，我们只需要放在容器中即可==
+
+- Support for `HttpMessageConverters` (see below).
+
+  - HttpMessageConverter：SpringMVC用来转换Http请求和响应的；User---Json；
+
+  - `HttpMessageConverters` 是从容器中确定；获取所有的HttpMessageConverter；
+
+    ==自己给容器中添加HttpMessageConverter，只需要将自己的组件注册容器中（@Bean,@Component）==
+
+- Automatic registration of `MessageCodesResolver` (see below).定义错误代码生成规则
+
+- Automatic use of a `ConfigurableWebBindingInitializer` bean (see below).
+
+  ==我们可以配置一个ConfigurableWebBindingInitializer来替换默认的；（添加到容器）==
+
+## 整合JDBC
+
+编写yaml配置文件连接数据库
+
+```yaml
+spring:
+  datasource:
+    username: work
+    password: ****
+    url: jdbc:mysql://localhost:3306/o2o?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
+    driver-class-name: com.mysql.cj.jdbc.Driver
+```
+
+默认数据源
+
+```java
+@SpringBootTest
+class SpringbootDataApplicationTests {
+
+    @Autowired
+    DataSource dataSource;
+
+    @Test
+    void contextLoads() throws SQLException {
+        //查看默认数据源class com.zaxxer.hikari.HikariDataSource
+        System.out.println(dataSource.getClass());
+
+        //获得数据库连接
+        Connection connection = dataSource.getConnection();
+        System.out.println(connection);
+
+        //xxx Template：SpringBoot已经配置好模板bean，拿来即用 CRUD
+        //关闭
+        connection.close();
+    }
+
+}
+```
+
+利用JDBCTemplate做CRUD
+
+```java
+@Controller
+public class JDBCController {
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    //查询数据库的所有信息
+    //没有实体类，数据库中的东西怎么获取？ map
+    @RequestMapping("/query")
+    @ResponseBody
+    public List<Map<String, Object>> userList() {
+        String sql = "select * from tb_area";
+        List<Map<String, Object>> mapList = jdbcTemplate.queryForList(sql);
+        return mapList;
+    }
+
+    @RequestMapping("/add")
+    @ResponseBody
+    public String addArea() {
+        //插入语句
+        String sql = "insert into tb_area(area_name, priority)" +
+                "values ('北苑',1)";
+        jdbcTemplate.update(sql);
+        return "add successfully";
+    }
+
+    @RequestMapping("/update/{id}")
+    @ResponseBody
+    public String updateArea(@PathVariable("id") int id) {
+        //sql语句
+        String sql = "update tb_area set area_name=?,priority=? where area_id=" + id;
+        //数据
+        Object[] objects = new Object[2];
+        objects[0] = "教学区";
+        objects[1] = 5;
+        jdbcTemplate.update(sql, objects);
+        return "update successfully";
+    }
+
+    @RequestMapping("/delete/{id}")
+    @ResponseBody
+    public String deleteArea(@PathVariable("id") int id) {
+        //sql语句
+        String sql = "delete from tb_area where area_id=?";
+        jdbcTemplate.update(sql, id);
+        return "delete successfully";
+    }
+}
+```
+
+## 整合druid
+
+导入依赖（druid现在已有stater）
+
+```xml
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+```
+
+yaml中配置
+
+```yaml
+spring:
+  datasource:
+    username: root
+    password: root123
+    url: jdbc:mysql://118.25.191.81:3306/mall?serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8&useSSL=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      # 下面为连接池的补充设置，应用到上面所有数据源中
+      # 初始化大小，最小，最大
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      # 配置获取连接等待超时的时间
+      max-wait: 60000
+      # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+      time-between-eviction-runs-millis: 60000
+      # 配置一个连接在池中最小生存的时间，单位是毫秒
+      min-evictable-idle-time-millis: 300000
+      # 打开PSCache，并且指定每个连接上PSCache的大小
+      pool-prepared-statements: true
+      #   配置监控统计拦截的filters，去掉后监控界面sql无法统计，'wall'用于防火墙
+      max-pool-prepared-statement-per-connection-size: 20
+      filters: stat,wall
+      use-global-data-source-stat: true
+      # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
+      connect-properties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+      # 配置监控服务器
+      stat-view-servlet:
+        login-username: admin
+        login-password: 123456
+        reset-enable: false
+        url-pattern: /druid/*
+        enabled: true
+      web-stat-filter:
+        # 添加过滤规则
+        url-pattern: /*
+        # 忽略过滤格式
+        exclusions: "*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*"
+        enabled: true
+```
+
+注意：如果要使用druid的监控服务器，需要在stat-view-servlet中配置enabled属性为true
+
+## 整合Mybatis
+
+引入依赖
+
+```xml
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>2.1.4</version>
+        </dependency>
+```
+
+配置Mybatis
+
+```yaml
+# Mybatis配置
+mybatis:
+  type-aliases-package: com.zhongming.pojo #别名设置
+  mapper-locations: classpath:mapper/*.xml #mapper文件位置
+  configuration:
+    map-underscore-to-camel-case: true #开启驼峰命名
+    use-column-label: true
+    use-generated-keys: true #使用主键自增
+```
+
+编写pojo实体类（lombok）
+
+```java
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Area {
+    //ID
+    private Integer areaId;
+    //名称
+    private String areaName;
+    //权重
+    private Integer priority;
+    //创建时间
+    private Date createTime;
+    //更新时间
+    private Date lastEditTime;
+}
+```
+
+编写dao接口
+
+```java
+package com.zhongming.dao;
+
+import com.zhongming.pojo.Area;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface AreaDao {
+    //查询所有的地区信息
+    List<Area> queryAreaList();
+
+    //增加地区信息
+    int addArea(Area area);
+
+    //更新指定id的地区信息
+    int updateArea(Area area);
+
+    //删除指定id的地区信息
+    int deleteArea(int id);
+}
+```
+
+编写mapper
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zhongming.dao.AreaDao">
+    <select id="queryAreaList" resultType="Area">
+        select *
+        from tb_area
+    </select>
+    <insert id="addArea" parameterType="Area">
+        insert into tb_area(area_name, create_time, last_edit_time)
+        VALUES (#{areaName}, #{createTime}, #{lastEditTime})
+    </insert>
+    <update id="updateArea" parameterType="Area">
+        update tb_area
+        <set>
+            <if test="areaName != null">area_name = #{areaName}</if>
+            <if test="createTime != null">create_time = #{createTime}</if>
+            <if test="lastEditTime != null">last_edit_time = #{lastEditTime}</if>
+        </set>
+        where area_id = #{areaId}
+    </update>
+    <delete id="deleteArea" parameterType="int">
+        delete from tb_area where area_id=#{id}
+    </delete>
+</mapper>
+```
+
+单元测试
+
+```java
+package com.zhongming.dao;
+
+import com.zhongming.pojo.Area;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.Date;
+import java.util.List;
+
+@SpringBootTest
+public class AreaDaoTest {
+    @Autowired
+    private AreaDao areaDao;
+
+    @Test
+    public void queryAreaListTest(){
+        List<Area> areas = areaDao.queryAreaList();
+        for(Area area:areas){
+            System.out.println(area);
+        }
+    }
+
+    @Test
+    public void addAreaTest(){
+        Area area = new Area();
+        area.setAreaName("教学区");
+        area.setCreateTime(new Date());
+        area.setLastEditTime(new Date());
+        areaDao.addArea(area);
+        System.out.println("OK");
+    }
+
+    @Test
+    public void updateAreaTest(){
+        Area area = new Area();
+        area.setAreaName("五饭");
+        area.setAreaId(14);
+        areaDao.updateArea(area);
+        System.out.println("OK");
+    }
+
+    @Test
+    public void deleteAreaTest(){
+        areaDao.deleteArea(14);
+        System.out.println("OK");
+    }
+}
+
+```
+
+
+
+## Spring-Security
+
+Spring 是一个非常流行和成功的 Java 应用开发框架。Spring Security 基于 Spring 框架，提供了一套 Web 应用安全性的完整解决方案。一般来说，Web 应用的安全性包括==用户认证==（Authentication）和==用户授权==（Authorization）两个部分。用户认证指的是验证某个用户是否为系统中的合法主体，也就是说用户能否访问该系统。用户认证一般要求用户提供用户名和密码。系统通过校验用户名和密码来完成认证过程。用户授权指的是验证某个用户是否有权限执行某个操作。在一个系统中，不同用户所具有的权限是不同的。比如对一个文件来说，有的用户只能进行读取，而有的用户可以进行修改。一般来说，系统会为不同的用户分配不同的角色，而每个角色则对应一系列的权限。
+
+对于上面提到的两种应用情景，Spring Security 框架都有很好的支持。在用户认证方面，Spring Security 框架支持主流的认证方式，包括 HTTP 基本认证、HTTP 表单验证、HTTP 摘要认证、OpenID 和 LDAP 等。在用户授权方面，Spring Security 提供了基于角色的访问控制和访问控制列表（Access Control List，ACL），可以对应用中的领域对象进行细粒度的控制。
+
+```java
+package com.zhongmingyuan.config;
+
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+@EnableWebSecurity
+public class SecurityConfig  extends WebSecurityConfigurerAdapter {
+
+    //授权
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        //首页所有人可以访问，功能页只对应有权限的人能访问
+        //请求授权的规则
+        http.authorizeRequests()
+                .antMatchers("/").permitAll()
+                .antMatchers("/level1/**").hasRole("vip1")
+                .antMatchers("/level2/**").hasRole("vip2")
+                .antMatchers("/level3/**").hasRole("vip3");
+        //没有权限回默认跳到登录页面，需要开启登录页面
+        //定制登录页面，接受参数，登录请求
+        http.formLogin().loginPage("/toLogin").usernameParameter("username").passwordParameter("password")
+                .loginProcessingUrl("/login");
+        //注销
+        http.logout().logoutSuccessUrl("/");
+        //开启记住我功能 cookie默认保存两周时间,自定义接受前端来参数
+        http.rememberMe().rememberMeParameter("remember");
+    }
+
+    //认证
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.inMemoryAuthentication().passwordEncoder(new BCryptPasswordEncoder())
+                .withUser("zhongming").password(new BCryptPasswordEncoder().encode("123456")).roles("vip2","vip3")
+                .and()
+                .withUser("root").password(new BCryptPasswordEncoder().encode("123456")).roles("vip1","vip2","vip3");
+    }
+}
+
+```
 
